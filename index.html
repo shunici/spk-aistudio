@@ -345,6 +345,70 @@
         padding: 5px;
       }
 
+      /* Navbar */
+      .navbar {
+        background-color: #1f2937;
+        padding: 10px 20px;
+        display: flex;
+        gap: 20px;
+        margin-bottom: 20px;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      }
+
+      .nav-link {
+        color: #f3f4f6;
+        text-decoration: none;
+        font-weight: bold;
+        padding: 8px 16px;
+        border-radius: 6px;
+        transition: background 0.2s;
+      }
+
+      .nav-link:hover, .nav-link.active {
+        background-color: #374151;
+      }
+
+      .nav-link.active {
+        background-color: #2563eb;
+      }
+
+      /* Pages */
+      .page {
+        display: none;
+      }
+
+      .page.active {
+        display: block;
+      }
+
+      /* Data Table Page Styles */
+      .data-table-container {
+        background: white;
+        padding: 20px;
+        border-radius: 8px;
+        border: 1px solid #ccc;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      }
+
+      .refresh-btn {
+        background-color: #10b981;
+        margin-bottom: 15px;
+      }
+
+      .save-btn {
+        background-color: #8b5cf6; /* Purple for Save */
+      }
+
+      #data-display-table th {
+        background-color: #374151;
+        color: white;
+      }
+
+      #data-display-table td {
+        font-size: 13px;
+      }
+
       /* Print Media Query */
       @media print {
         body { 
@@ -381,12 +445,19 @@
     </style>
   </head>
   <body>
-    <div class="action-buttons">
-      <button class="btn print-btn" onclick="window.print()">Cetak SPK</button>
-      <button class="btn clear-btn" onclick="clearPemesan()">Hapus Nama Pemesan</button>
-      <button class="btn add-btn" onclick="addRow()">Tambah Baris</button>
-      <button class="btn remove-btn" onclick="removeRow()">Hapus Baris</button>
-      <button class="btn clear-all-btn" onclick="clearAllInputs()">Hapus Isian Kolom</button>
+    <nav class="navbar">
+      <a href="#" class="nav-link active" id="nav-spk" onclick="switchPage('spk')">SPK Baru</a>
+      <a href="#" class="nav-link" id="nav-table" onclick="switchPage('table')">Tabel Cetakan</a>
+    </nav>
+
+    <div id="spk-page" class="page active">
+      <div class="action-buttons">
+        <button class="btn print-btn" onclick="window.print()">Cetak SPK</button>
+        <button class="btn save-btn" onclick="saveToSpreadsheet()">Simpan ke Spreadsheet</button>
+        <button class="btn clear-btn" onclick="clearPemesan()">Hapus Nama Pemesan</button>
+        <button class="btn add-btn" onclick="addRow()">Tambah Baris</button>
+        <button class="btn remove-btn" onclick="removeRow()">Hapus Baris</button>
+        <button class="btn clear-all-btn" onclick="clearAllInputs()">Hapus Isian Kolom</button>
       
       <div class="service-options">
         <label class="service-item">
@@ -500,8 +571,40 @@
         </div>
       </div>
     </div>
+    </div>
+
+    <!-- Halaman Tabel Cetakan -->
+    <div id="table-page" class="page">
+      <div class="data-table-container">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+          <h2 style="font-family: 'Georgia', serif; font-style: italic;">Data Cetakan Terakhir</h2>
+          <button class="btn refresh-btn" onclick="fetchDataFromSpreadsheet()">Refresh Data</button>
+        </div>
+        <table id="data-display-table">
+          <thead>
+            <tr>
+              <th>Waktu</th>
+              <th>Pemesan</th>
+              <th>Nama Barang</th>
+              <th>Ukuran</th>
+              <th>Bahan</th>
+              <th>Qty</th>
+              <th>FNS</th>
+              <th>LS</th>
+              <th>Keterangan</th>
+            </tr>
+          </thead>
+          <tbody id="data-table-body">
+            <tr>
+              <td colspan="9" class="center">Klik Refresh untuk memuat data...</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
 
     <script>
+      const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyCt_xbrOpJKOUcb6ty0mpMVP-xT9_MlLlwVn5R1ijFu9J51iZXjej0ewTkMIMnFyOWBQ/exec';
       let rowCount = 0;
       const longNotes = {}; // To store full text for truncated items
 
@@ -900,6 +1003,118 @@
 
       updateDateTime();
       setInterval(updateDateTime, 60000);
+
+      // --- Integrasi Spreadsheet ---
+
+      function switchPage(page) {
+        document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+        document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
+        
+        if (page === 'spk') {
+          document.getElementById('spk-page').classList.add('active');
+          document.getElementById('nav-spk').classList.add('active');
+        } else {
+          document.getElementById('table-page').classList.add('active');
+          document.getElementById('nav-table').classList.add('active');
+          fetchDataFromSpreadsheet(); // Auto refresh saat buka tabel
+        }
+      }
+
+      async function saveToSpreadsheet() {
+        const namaPemesan = document.getElementById('nama-pemesan').value.trim();
+        if (!namaPemesan) {
+          alert('Nama Pemesan harus diisi!');
+          return;
+        }
+
+        const rows = [];
+        const now = new Date().toLocaleString('id-ID');
+
+        for (let i = 1; i <= rowCount; i++) {
+          const item = document.getElementById(`input-item-${i}`).value.trim();
+          if (item) {
+            const rowData = {
+              nama_pemesan: namaPemesan,
+              nama_barang: item,
+              ukuran: document.getElementById(`input-ukuran-${i}`).value,
+              bahan: document.getElementById(`input-bahan-${i}`).value,
+              qty: document.getElementById(`input-qty-${i}`).value,
+              fns: document.querySelectorAll(`#row-${i} .check-box-input`)[0].checked,
+              ls: document.querySelectorAll(`#row-${i} .check-box-input`)[1].checked,
+              keterangan: document.getElementById(`input-keterangan-${i}`).value,
+              waktu: now
+            };
+            rows.push(rowData);
+          }
+        }
+
+        if (rows.length === 0) {
+          alert('Tidak ada data barang untuk disimpan!');
+          return;
+        }
+
+        const btn = document.querySelector('.save-btn');
+        const originalText = btn.textContent;
+        btn.textContent = 'Menyimpan...';
+        btn.disabled = true;
+
+        try {
+          // Menggunakan fetch dengan mode no-cors karena Apps Script seringkali bermasalah dengan CORS
+          // Namun data tetap terkirim jika script diset 'Anyone'
+          await fetch(SCRIPT_URL, {
+            method: 'POST',
+            mode: 'no-cors',
+            cache: 'no-cache',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(rows)
+          });
+
+          alert('Data berhasil dikirim ke Spreadsheet!');
+          // Opsional: clearAllInputs();
+        } catch (error) {
+          console.error('Error:', error);
+          alert('Gagal menyimpan data. Pastikan Apps Script sudah di-deploy sebagai Web App (Anyone).');
+        } finally {
+          btn.textContent = originalText;
+          btn.disabled = false;
+        }
+      }
+
+      async function fetchDataFromSpreadsheet() {
+        const tbody = document.getElementById('data-table-body');
+        tbody.innerHTML = '<tr><td colspan="9" class="center">Memuat data...</td></tr>';
+
+        try {
+          const response = await fetch(SCRIPT_URL);
+          const data = await response.json();
+          
+          tbody.innerHTML = '';
+          if (data.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="9" class="center">Data kosong.</td></tr>';
+            return;
+          }
+
+          // Urutkan berdasarkan waktu terbaru (asumsi data terakhir di bawah)
+          data.reverse().forEach(row => {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+              <td>${row.waktu || '-'}</td>
+              <td class="bold">${row.nama_pemesan || '-'}</td>
+              <td>${row.nama_barang || '-'}</td>
+              <td>${row.ukuran || '-'}</td>
+              <td>${row.bahan || '-'}</td>
+              <td class="center">${row.qty || '-'}</td>
+              <td class="center">${row.fns ? '✓' : '-'}</td>
+              <td class="center">${row.ls ? '✓' : '-'}</td>
+              <td>${row.keterangan || '-'}</td>
+            `;
+            tbody.appendChild(tr);
+          });
+        } catch (error) {
+          console.error('Error fetching:', error);
+          tbody.innerHTML = '<tr><td colspan="9" class="center" style="color:red;">Gagal memuat data. Pastikan Apps Script mendukung GET request (doGet).</td></tr>';
+        }
+      }
     </script>
   </body>
 </html>
