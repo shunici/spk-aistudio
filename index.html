@@ -263,7 +263,7 @@
         border-bottom: 1px solid #eee;
       }
 
-      .catatan-content {      
+      .catatan-content {        
         padding: 10px;
         display: flex;
         flex-wrap: wrap;
@@ -432,6 +432,28 @@
       .filter-item input {
         width: auto;
         height: auto;
+      }
+
+      .search-container {
+        display: flex;
+        gap: 10px;
+        margin-left: auto; /* Push to the right */
+        align-items: center;
+      }
+
+      .search-input {
+        padding: 6px 12px;
+        border: 1px solid #d1d5db;
+        border-radius: 6px;
+        font-size: 14px;
+        width: 200px;
+        background: white !important;
+      }
+
+      .search-btn {
+        background-color: #3b82f6;
+        padding: 6px 15px;
+        font-size: 13px;
       }
 
       /* Print Media Query */
@@ -625,6 +647,12 @@
           <label class="filter-item">
             <input type="radio" name="time-filter" value="bulan-ini" onchange="renderFilteredData()"> Bulan Ini
           </label>
+
+          <!-- Search Nama Pemesan -->
+          <div class="search-container">
+            <input type="text" id="search-pemesan" class="search-input" placeholder="Cari Nama Pemesan..." onkeyup="if(event.key === 'Enter') renderFilteredData()">
+            <button class="btn search-btn" onclick="renderFilteredData()">Cari</button>
+          </div>
         </div>
 
         <table id="data-display-table">
@@ -1147,6 +1175,7 @@
       function renderFilteredData() {
         const tbody = document.getElementById('data-table-body');
         const filterValue = document.querySelector('input[name="time-filter"]:checked').value;
+        const searchQuery = document.getElementById('search-pemesan').value.toLowerCase().trim();
         
         if (!allSpreadsheetData || allSpreadsheetData.length === 0) {
           tbody.innerHTML = '<tr><td colspan="9" class="center">Data kosong.</td></tr>';
@@ -1175,6 +1204,16 @@
         };
 
         const filtered = allSpreadsheetData.filter(row => {
+          // 1. Filter Nama Pemesan (Search)
+          if (searchQuery && row.nama_pemesan) {
+            if (!row.nama_pemesan.toLowerCase().includes(searchQuery)) {
+              return false;
+            }
+          } else if (searchQuery && !row.nama_pemesan) {
+            return false;
+          }
+
+          // 2. Filter Waktu
           if (filterValue === 'semua') return true;
           
           const rowDate = parseIndoDate(row.waktu);
