@@ -875,9 +875,6 @@
           if (targetRow !== null) {
             const rowNum = parseInt(targetRow);
             if (!isNaN(rowNum) && rowNum >= 1 && rowNum <= rowCount) {
-              const cleanName = stripExtension(targetFile.name);
-              parseFilename(cleanName, rowNum);
-              
               // Update visual sidebar box with image preview
               const box = document.getElementById(`sidebar-box-${rowNum}`);
               if (box && targetFile.type.startsWith('image/')) {
