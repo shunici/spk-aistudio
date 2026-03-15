@@ -1,0 +1,909 @@
+<!doctype html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>SPK Cetak - HTML/CSS/JS</title>
+    <style>
+      /* Reset & Base Styles */
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+        font-family: Arial, sans-serif;
+      }
+
+      body {
+        background-color: #f3f4f6;
+        padding: 20px;
+      }
+
+      /* Container */
+      .container {
+        max-width: 1100px;
+        margin: 0 auto;
+        background: white;
+        padding: 30px;
+        border: 1px solid #ccc;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        position: relative;
+      }
+
+      /* Action Buttons */
+      .action-buttons {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        z-index: 100;
+      }
+
+      .btn {
+        padding: 10px 20px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-weight: bold;
+        border: none;
+        color: white;
+        transition: opacity 0.2s;
+        text-align: center;
+      }
+
+      .btn:hover {
+        opacity: 0.9;
+      }
+
+      .print-btn {
+        background-color: #2563eb;
+      }
+
+      .clear-btn {
+        background-color: #ef4444;
+        font-size: 12px;
+      }
+
+      .add-btn {
+        background-color: #10b981;
+        font-size: 12px;
+      }
+
+      .remove-btn {
+        background-color: #f59e0b;
+        font-size: 12px;
+      }
+
+      .clear-all-btn {
+        background-color: #6b7280;
+        font-size: 12px;
+      }
+
+      /* Service Checkboxes */
+      .service-options {
+        background: white;
+        padding: 10px;
+        border-radius: 6px;
+        border: 1px solid #ccc;
+        display: flex;
+        flex-direction: column;
+        gap: 5px;
+        font-size: 12px;
+        font-weight: bold;
+      }
+
+      .service-item {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        cursor: pointer;
+      }
+
+      .service-item input {
+        width: auto;
+        height: auto;
+      }
+
+      /* Layout Grid */
+      .main-layout {
+        display: flex;
+        gap: 15px;
+      }
+
+      .left-content {
+        flex: 1;
+      }
+
+      .right-sidebar {
+        width: 200px;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+      }
+
+      .sidebar-box {
+        flex: 1;
+        border: 2px solid black;
+        min-height: 80px;
+        transition: background-color 0.2s;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 10px;
+        color: #999;
+        text-align: center;
+        padding: 5px;
+      }
+
+      .sidebar-box.drag-over {
+        background-color: #dbeafe;
+        border-color: #2563eb;
+      }
+
+      /* Header Boxes */
+      .header-grid {
+        display: grid;
+        grid-template-columns: 1.5fr 1.2fr 1fr;
+        gap: 15px;
+        margin-bottom: 15px;
+      }
+
+      .box {
+        border: 2px solid black;
+      }
+
+      .box-title {
+        border-bottom: 2px solid black;
+        text-align: center;
+        font-weight: bold;
+        padding: 5px;
+        font-size: 16px;
+      }
+
+      .box-content {
+        padding: 10px;
+        min-height: 80px;
+        transition: background-color 0.2s;
+      }
+
+      .box-content.drag-over {
+        background-color: #dbeafe;
+      }
+
+      .box-footer {
+        border-top: 2px solid black;
+        padding: 5px;
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        font-weight: bold;
+      }
+
+      /* Date Section */
+      .date-display {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        height: 100%;
+        text-align: center;
+      }
+
+      .date-text {
+        font-size: 24px;
+        font-weight: 900;
+        font-style: italic;
+        letter-spacing: -1px;
+      }
+
+      .time-text {
+        font-size: 18px;
+        font-weight: bold;
+        margin-top: 5px;
+      }
+
+      /* Table */
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        border: 2px solid black;
+        margin-bottom: 15px;
+        margin-top: 15px;
+      }
+
+      th {
+        background-color: #a1a1aa;
+        border: 2px solid black;
+        padding: 8px;
+        font-size: 12px;
+      }
+
+      td {
+        border: 2px solid black;
+        height: 45px;
+        padding: 5px;
+      }
+
+      input, textarea {
+        width: 100%;
+        height: 100%;
+        border: none;
+        outline: none;
+        font-size: 16px; /* Maximized font size */
+        font-weight: 500;
+        resize: none;
+        background: transparent;
+      }
+
+      .center { text-align: center; }
+      .bold { font-weight: bold; }
+
+      /* Checkbox styling in table */
+      .check-cell {
+        text-align: center;
+        vertical-align: middle;
+      }
+      
+      .check-box-input {
+        width: 20px;
+        height: 20px;
+        cursor: pointer;
+        margin: 0 auto;
+      }
+
+      /* Catatan */
+      .catatan-box {
+        border: 2px solid black;
+        margin-bottom: 15px;
+      }
+
+      .catatan-label {
+        font-size: 10px;
+        font-weight: bold;
+        padding: 2px 5px;
+        border-bottom: 1px solid #eee;
+      }
+
+      .catatan-content {
+        min-height: 80px;
+        padding: 10px;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        align-content: flex-start;
+      }
+
+      .note-badge-item {
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        background: #f8fafc;
+        border: 1px solid #e2e8f0;
+        padding: 4px 8px;
+        border-radius: 6px;
+        font-size: 13px;
+        max-width: 100%;
+      }
+
+      .badge-num {
+        background: #2563eb;
+        color: white;
+        width: 20px;
+        height: 20px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 50%;
+        font-size: 11px;
+        font-weight: bold;
+        flex-shrink: 0;
+      }
+
+      .note-text {
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+
+      /* Signatures */
+      .signature-grid {
+        display: grid;
+        grid-template-columns: repeat(6, 1fr);
+        border: 2px solid black;
+        text-align: center;
+        font-size: 10px;
+        font-weight: bold;
+      }
+
+      .sig-col {
+        border-right: 2px solid black;
+      }
+
+      .sig-col:last-child {
+        border-right: none;
+      }
+
+      .sig-header {
+        border-bottom: 2px solid black;
+        padding: 3px;
+      }
+
+      .sig-space {
+        height: 50px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      /* Styling khusus Nama Pemesan */
+      #nama-pemesan {
+        font-weight: 900 !important;
+        text-transform: uppercase !important;
+        font-size: 32px !important;
+        color: #000 !important;
+        line-height: 1.1;
+        padding: 5px;
+      }
+
+      /* Print Media Query */
+      @media print {
+        body { 
+          background: white !important; 
+          padding: 0 !important; 
+          margin: 0 !important;
+        }
+        .container { 
+          border: none !important; 
+          box-shadow: none !important; 
+          width: 100% !important; 
+          max-width: none !important; 
+          margin: 0 !important;
+          padding: 10px !important;
+        }
+        .action-buttons, .right-sidebar { 
+          display: none !important; 
+        }
+        .main-layout {
+          display: block !important;
+        }
+        .left-content {
+          width: 100% !important;
+        }
+        input, textarea {
+          border: none !important;
+          background: transparent !important;
+        }
+        /* Menghilangkan placeholder saat print */
+        input::placeholder, textarea::placeholder {
+          color: transparent !important;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="action-buttons">
+      <button class="btn print-btn" onclick="window.print()">Cetak SPK</button>
+      <button class="btn clear-btn" onclick="clearPemesan()">Hapus Nama Pemesan</button>
+      <button class="btn add-btn" onclick="addRow()">Tambah Baris</button>
+      <button class="btn remove-btn" onclick="removeRow()">Hapus Baris</button>
+      <button class="btn clear-all-btn" onclick="clearAllInputs()">Hapus Isian Kolom</button>
+      
+      <div class="service-options">
+        <label class="service-item">
+          <input type="radio" name="order-type" id="check-offset" checked> Offset
+        </label>
+        <label class="service-item">
+          <input type="radio" name="order-type" id="check-outdoor"> Outdoor
+        </label>
+        <label class="service-item">
+          <input type="radio" name="order-type" id="check-indoor"> Indoor
+        </label>
+        <label class="service-item">
+          <input type="radio" name="order-type" id="check-merchandise"> Merchandise
+        </label>
+      </div>
+    </div>
+
+    <div class="container">
+      <div class="main-layout">
+        <div class="left-content">
+          <!-- Header -->
+          <div class="header-grid">
+            <div class="box">
+              <div class="box-title">Nama Pemesan</div>
+              <div id="drop-zone" class="box-content">
+                <textarea id="nama-pemesan" placeholder="Isi nama pemesan atau drag folder ke sini..."></textarea>
+              </div>
+              <div class="box-footer">
+                <span>Kontak :</span>
+                <input type="text" style="flex:1">
+              </div>
+            </div>
+
+            <div class="box">
+              <div class="box-title">Tanggal Masuk</div>
+              <div class="box-content">
+                <div class="date-display">
+                  <div id="current-date" class="date-text">Memuat...</div>
+                  <div id="current-time" class="time-text">Pukul : --:--</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="box">
+              <div class="box-title">No. Nota</div>
+              <div class="box-content" style="display:flex; align-items:center;">
+                <input type="text" class="center bold" style="font-size: 24px;">
+              </div>
+            </div>
+          </div>
+
+          <!-- Table -->
+          <table id="item-table">
+            <thead>
+              <tr>
+                <th style="width: 40px;">No</th>
+                <th>NAMA BARANG</th>
+                <th style="width: 100px;">UKURAN</th>
+                <th style="width: 120px;">BAHAN</th>
+                <th style="width: 50px;">qty</th>
+                <th style="width: 40px;">FNS</th>
+                <th style="width: 40px;">LS</th>
+                <th>KETERANGAN</th>
+              </tr>
+            </thead>
+            <tbody id="table-body">
+              <!-- Baris akan ditambahkan di sini -->
+            </tbody>
+          </table>
+
+          <!-- Catatan -->
+          <div class="catatan-box">
+            <div class="catatan-label">Catatan Tambahan</div>
+            <div id="catatan-list" class="catatan-content">
+              <!-- Notes will appear here as badges -->
+            </div>
+          </div>
+
+          <!-- Signatures -->
+          <div class="signature-grid">
+            <div class="sig-col">
+              <div class="sig-header">Desain</div>
+              <div class="sig-space"></div>
+            </div>
+            <div class="sig-col">
+              <div class="sig-header">Designer</div>
+              <div class="sig-space"><span class="designer-name">Shuny</span></div>
+            </div>
+            <div class="sig-col">
+              <div class="sig-header">Admin</div>
+              <div class="sig-space"></div>
+            </div>
+            <div class="sig-col">
+              <div class="sig-header">Operator</div>
+              <div class="sig-space"></div>
+            </div>
+            <div class="sig-col">
+              <div class="sig-header">Finishing</div>
+              <div class="sig-space"></div>
+            </div>
+            <div class="sig-col">
+              <div class="sig-header">Kostumer</div>
+              <div class="sig-space"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Sidebar -->
+        <div id="right-sidebar" class="right-sidebar">
+          <!-- Kotak sidebar akan ditambahkan di sini -->
+        </div>
+      </div>
+    </div>
+
+    <script>
+      let rowCount = 0;
+      const longNotes = {}; // To store full text for truncated items
+
+      function updateDateTime() {
+        const now = new Date();
+        const options = { weekday: 'long', day: 'numeric', month: 'short', year: 'numeric' };
+        const dateStr = now.toLocaleDateString('id-ID', options);
+        const timeStr = now.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
+        
+        document.getElementById('current-date').textContent = dateStr;
+        document.getElementById('current-time').textContent = 'Pukul : ' + timeStr.replace('.', ':');
+      }
+
+      function clearPemesan() {
+        document.getElementById('nama-pemesan').value = '';
+      }
+
+      function stripExtension(filename) {
+        // Menghapus ekstensi file (semua karakter setelah titik terakhir)
+        return filename.replace(/\.[^/.]+$/, "");
+      }
+
+      function parseFilename(filename, rowId) {
+        const isOffset = document.getElementById('check-offset').checked;
+        const isOutdoor = document.getElementById('check-outdoor').checked;
+        const isIndoor = document.getElementById('check-indoor').checked;
+
+        let name = filename.toLowerCase();
+        let result = {
+          item: filename,
+          ukuran: (isOffset) ? 'A3+' : '', // Ukuran tidak berfungsi untuk outdoor/indoor
+          bahan: '',
+          qty: '1',
+          keterangan: ''
+        };
+
+        // 1. Identifikasi Qty (Sintaks: _10pcs atau _10)
+        const qtyMatch = name.match(/_(\d+)(?:pcs)?$/i);
+        if (qtyMatch) {
+          result.qty = qtyMatch[1];
+          // Bersihkan nama dari qty untuk pencarian bahan
+          name = name.replace(/_(\d+)(?:pcs)?$/i, "").trim();
+          result.item = result.item.replace(/_(\d+)(?:pcs)?$/i, "").trim();
+        } else {
+          // Fallback ke deteksi qty lama jika tidak ada underscore
+          const qtyAliases = ['lembar', 'lbr', 'pcs', 'lambar', 'lembbar', 'lmb'];
+          const qtyRegex = new RegExp(`(\\d+)\\s*(${qtyAliases.join('|')})`);
+          const qtyMatchOld = name.match(qtyRegex);
+          if (qtyMatchOld) {
+            result.qty = qtyMatchOld[1];
+          }
+        }
+
+        // 2. Identifikasi Bahan berdasarkan Mode
+        if (isOffset) {
+          const offsetMap = {
+            'ap260': ['ap tebal', 'ap 260', 'artpaper 260 gr', 'ap260 gr', 'ap260'],
+            'ap150': ['ap 150 gr', 'ap tipis', 'artpaper 150 gr', 'artpaper 150', 'ap150'],
+            'bontak': ['bontak'],
+            'vynil': ['vynil'],
+            'transparan': ['transparan']
+          };
+          for (const [standard, aliases] of Object.entries(offsetMap)) {
+            if (aliases.some(alias => name.includes(alias))) {
+              result.bahan = standard;
+              break;
+            }
+          }
+
+          // Keterangan khusus Offset
+          if (result.bahan === 'ap260' || result.bahan === 'ap150') {
+            const sisiMap = { '1 sisi': ['1 ssi', '1 sisis', '1sisi', '1ssi'], '2 sisi': ['2 ssi', '2 sisii', '2sisi', '2ssi'] };
+            const lamMap = { 'laminasi doff': ['dof', 'dop', 'doft', 'dopt', 'laminasi doff'], 'laminasi glossy': ['glos', 'glossy', 'glosi', 'lam glos'] };
+            
+            let foundSisi = Object.keys(sisiMap).find(s => sisiMap[s].some(a => name.includes(a))) || '1 sisi';
+            let foundLam = Object.keys(lamMap).find(l => lamMap[l].some(a => name.includes(a))) || '';
+            result.keterangan = foundSisi + (foundLam ? ' ' + foundLam : '');
+          }
+        } 
+        else if (isOutdoor) {
+          const outdoorMap = {
+            'fr280': ['frontlite 280 gr', 'flexi', 'fr', '280gr', 'spanduk', 'banner'],
+            'backlite': ['beklit', 'backlit', 'bl', 'backlite', 'neonbox', 'film'],
+            'graptak out': ['graptak outdor', 'stiker oudoor', 'stiker']
+          };
+          for (const [standard, aliases] of Object.entries(outdoorMap)) {
+            if (aliases.some(alias => name.includes(alias))) {
+              result.bahan = standard;
+              break;
+            }
+          }
+        } 
+        else if (isIndoor) {
+          const indoorMap = {
+            'graptak indoor': ['graptak indoor', 'stiker indoor', 'stiker'],
+            'luster': ['luster', 'cluster', 'laster'],
+            'pvc': ['pvc', 'ppc'],
+            'albatros': ['albatos', 'albtros', 'albatros']
+          };
+          for (const [standard, aliases] of Object.entries(indoorMap)) {
+            if (aliases.some(alias => name.includes(alias))) {
+              result.bahan = standard;
+              break;
+            }
+          }
+        }
+
+        // 3. Logic for Long Text Truncation and Notes
+        const MAX_LEN = 20;
+        let truncatedItem = result.item;
+        let truncatedKet = result.keterangan;
+        
+        if (!longNotes[rowId]) longNotes[rowId] = {};
+
+        if (result.item.length > MAX_LEN) {
+          truncatedItem = result.item.substring(0, MAX_LEN) + '...';
+          longNotes[rowId].item = result.item;
+        }
+
+        if (result.keterangan.length > MAX_LEN) {
+          truncatedKet = result.keterangan.substring(0, MAX_LEN) + '...';
+          longNotes[rowId].ket = result.keterangan;
+        }
+
+        if (longNotes[rowId].item || longNotes[rowId].ket) {
+          renderNotes();
+        }
+
+        // Update UI
+        document.getElementById(`input-item-${rowId}`).value = truncatedItem;
+        document.getElementById(`input-ukuran-${rowId}`).value = result.ukuran;
+        document.getElementById(`input-bahan-${rowId}`).value = result.bahan;
+        document.getElementById(`input-qty-${rowId}`).value = result.qty;
+        document.getElementById(`input-keterangan-${rowId}`).value = truncatedKet;
+
+        return result.item;
+      }
+
+      function renderNotes() {
+        const container = document.getElementById('catatan-list');
+        container.innerHTML = '';
+        
+        const ketNotes = [];
+        const itemNotes = [];
+        
+        Object.keys(longNotes).sort((a, b) => a - b).forEach(id => {
+          const data = longNotes[id];
+          if (data.ket) ketNotes.push({ id, text: data.ket });
+          if (data.item) itemNotes.push({ id, text: data.item });
+        });
+
+        // Render Keterangan Notes (Top) - List Style, No Badge
+        if (ketNotes.length > 0) {
+          const ketContainer = document.createElement('div');
+          ketContainer.style.display = 'flex';
+          ketContainer.style.flexDirection = 'column';
+          ketContainer.style.gap = '4px';
+          ketContainer.style.width = '100%';
+          ketContainer.style.marginBottom = '5px';
+          
+          ketNotes.forEach(note => {
+            const div = document.createElement('div');
+            div.style.fontSize = '14px';
+            div.style.lineHeight = '1.4';
+            div.innerHTML = `Ket No ${note.id}: ${note.text}`;
+            ketContainer.appendChild(div);
+          });
+          container.appendChild(ketContainer);
+        }
+
+        // Add separator if both exist
+        if (ketNotes.length > 0 && itemNotes.length > 0) {
+          const separator = document.createElement('div');
+          separator.style.width = '100%';
+          separator.style.borderTop = '1px dashed #ccc';
+          separator.style.margin = '10px 0';
+          container.appendChild(separator);
+        }
+
+        // Render Item Notes (Bottom) - Badge Style
+        if (itemNotes.length > 0) {
+          const itemContainer = document.createElement('div');
+          itemContainer.style.display = 'flex';
+          itemContainer.style.flexWrap = 'wrap';
+          itemContainer.style.gap = '10px';
+          
+          itemNotes.forEach(note => {
+            const div = document.createElement('div');
+            div.className = 'note-badge-item';
+            div.innerHTML = `
+              <div class="badge-num">${note.id}</div>
+              <div class="note-text">${note.text}</div>
+            `;
+            itemContainer.appendChild(div);
+          });
+          container.appendChild(itemContainer);
+        }
+      }
+
+      function handleManualInput(rowId) {
+        const itemInput = document.getElementById(`input-item-${rowId}`);
+        const ketInput = document.getElementById(`input-keterangan-${rowId}`);
+        const MAX_LEN = 20;
+        
+        if (!longNotes[rowId]) longNotes[rowId] = {};
+
+        // Check Item
+        if (itemInput.value.length > MAX_LEN && !itemInput.value.endsWith('...')) {
+          const fullText = itemInput.value;
+          itemInput.value = fullText.substring(0, MAX_LEN) + '...';
+          longNotes[rowId].item = fullText;
+          renderNotes();
+        }
+
+        // Check Keterangan
+        if (ketInput.value.length > MAX_LEN && !ketInput.value.endsWith('...')) {
+          const fullText = ketInput.value;
+          ketInput.value = fullText.substring(0, MAX_LEN) + '...';
+          longNotes[rowId].ket = fullText;
+          renderNotes();
+        }
+      }
+
+      function clearRow(id) {
+        document.getElementById(`input-item-${id}`).value = '';
+        document.getElementById(`input-ukuran-${id}`).value = '';
+        document.getElementById(`input-bahan-${id}`).value = '';
+        document.getElementById(`input-qty-${id}`).value = '';
+        document.getElementById(`input-keterangan-${id}`).value = '';
+        
+        // Reset Sidebar Box (Hapus Gambar)
+        const box = document.getElementById(`sidebar-box-${id}`);
+        if (box) {
+          box.innerHTML = `Drag File Barang ${id} di sini`;
+          box.style.backgroundColor = '';
+          box.style.borderColor = '';
+          box.style.color = '';
+        }
+
+        delete longNotes[id];
+        renderNotes();
+      }
+
+      function clearAllInputs() {
+        for (let i = 1; i <= rowCount; i++) {
+          clearRow(i);
+        }
+      }
+
+      function addRow() {
+        rowCount++;
+        const tbody = document.getElementById('table-body');
+        const sidebar = document.getElementById('right-sidebar');
+
+        // Tambah Baris Tabel
+        const tr = document.createElement('tr');
+        tr.id = `row-${rowCount}`;
+        tr.innerHTML = `
+          <td class="center bold" style="cursor:pointer; background:#f9fafb;" title="Klik untuk hapus baris ini" onclick="clearRow(${rowCount})">${rowCount}</td>
+          <td><input type="text" id="input-item-${rowCount}" oninput="handleManualInput(${rowCount})"></td>
+          <td><input type="text" id="input-ukuran-${rowCount}"></td>
+          <td><input type="text" id="input-bahan-${rowCount}"></td>
+          <td><input type="text" class="center" id="input-qty-${rowCount}"></td>
+          <td class="check-cell"><input type="checkbox" class="check-box-input"></td>
+          <td class="check-cell"><input type="checkbox" class="check-box-input"></td>
+          <td><input type="text" id="input-keterangan-${rowCount}" oninput="handleManualInput(${rowCount})"></td>
+        `;
+        tbody.appendChild(tr);
+
+        // Tambah Kotak Sidebar
+        const box = document.createElement('div');
+        box.className = 'sidebar-box';
+        box.id = `sidebar-box-${rowCount}`;
+        box.textContent = `Drag File Barang ${rowCount} di sini`;
+        
+        // Drag and Drop untuk Sidebar Box
+        box.addEventListener('dragover', (e) => {
+          e.preventDefault();
+          box.classList.add('drag-over');
+        });
+
+        box.addEventListener('dragleave', () => {
+          box.classList.remove('drag-over');
+        });
+
+        box.addEventListener('drop', (e) => {
+          e.preventDefault();
+          box.classList.remove('drag-over');
+          
+          const files = e.dataTransfer.files;
+          if (files && files.length > 0) {
+            const file = files[0];
+            const rowId = box.id.split('-').pop();
+            const cleanName = stripExtension(file.name);
+            parseFilename(cleanName, rowId);
+
+            // Tampilkan Gambar jika file adalah gambar
+            if (file.type.startsWith('image/')) {
+              const reader = new FileReader();
+              reader.onload = (event) => {
+                box.innerHTML = `<img src="${event.target.result}" alt="${file.name}" style="max-width:100%; max-height:100%; object-fit:contain;" referrerPolicy="no-referrer">`;
+                box.style.backgroundColor = 'white';
+                box.style.borderColor = '#10b981';
+              };
+              reader.readAsDataURL(file);
+            }
+          }
+        });
+
+        sidebar.appendChild(box);
+      }
+
+      function removeRow() {
+        if (rowCount > 0) {
+          const tbody = document.getElementById('table-body');
+          const sidebar = document.getElementById('right-sidebar');
+          
+          tbody.removeChild(tbody.lastElementChild);
+          sidebar.removeChild(sidebar.lastElementChild);
+          
+          // Clean up notes for removed row
+          delete longNotes[rowCount];
+          renderNotes();
+          
+          rowCount--;
+        }
+      }
+
+      // Drag and Drop Logic for Nama Pemesan
+      const dropZone = document.getElementById('drop-zone');
+      const namaInput = document.getElementById('nama-pemesan');
+
+      dropZone.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        dropZone.classList.add('drag-over');
+      });
+
+      dropZone.addEventListener('dragleave', () => {
+        dropZone.classList.remove('drag-over');
+      });
+
+      dropZone.addEventListener('drop', (e) => {
+        e.preventDefault();
+        dropZone.classList.remove('drag-over');
+
+        const files = e.dataTransfer.files;
+        if (files && files.length > 0) {
+          namaInput.value = stripExtension(files[0].name);
+        }
+      });
+
+      // Inisialisasi dengan 4 baris awal
+      for(let i=0; i<4; i++) addRow();
+
+      // Fungsi Paste Global
+      window.addEventListener('paste', (e) => {
+        const items = e.clipboardData.items;
+        let targetFile = null;
+
+        for (let i = 0; i < items.length; i++) {
+          if (items[i].kind === 'file') {
+            targetFile = items[i].getAsFile();
+            break;
+          }
+        }
+
+        if (targetFile) {
+          // Default value is "1"
+          const targetRow = prompt(`File "${targetFile.name}" terdeteksi.\nMasukkan nomor baris tujuan (1 - ${rowCount}):`, "1");
+          
+          if (targetRow !== null) {
+            const rowNum = parseInt(targetRow);
+            if (!isNaN(rowNum) && rowNum >= 1 && rowNum <= rowCount) {
+              const cleanName = stripExtension(targetFile.name);
+              parseFilename(cleanName, rowNum);
+              
+              // Update visual sidebar box with image preview
+              const box = document.getElementById(`sidebar-box-${rowNum}`);
+              if (box && targetFile.type.startsWith('image/')) {
+                const reader = new FileReader();
+                reader.onload = (event) => {
+                  box.innerHTML = `<img src="${event.target.result}" alt="${targetFile.name}" style="max-width:100%; max-height:100%; object-fit:contain;" referrerPolicy="no-referrer">`;
+                  box.style.backgroundColor = 'white';
+                  box.style.borderColor = '#10b981';
+                };
+                reader.readAsDataURL(targetFile);
+              } else if (box) {
+                box.style.backgroundColor = '#ecfdf5';
+                box.style.borderColor = '#10b981';
+                box.style.color = '#065f46';
+                box.textContent = `File Terpasang: ${targetFile.name}`;
+              }
+            } else {
+              alert('Nomor baris tidak valid atau di luar jangkauan.');
+            }
+          }
+        }
+      });
+
+      updateDateTime();
+      setInterval(updateDateTime, 60000);
+    </script>
+  </body>
+</html>
+
