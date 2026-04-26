@@ -229,13 +229,41 @@
         border: none;
         outline: none;
         font-size: 16px; /* Maximized font size */
-        font-weight: 500;
+        font-weight: 730;
         resize: none;
         background: transparent;
+        text-align : center;
       }
 
       .center { text-align: center; }
       .bold { font-weight: bold; }
+
+      /* Note Controls */
+      .note-controls {
+        display: inline-flex;
+        gap: 5px;
+        margin-left: 10px;
+        vertical-align: middle;
+      }
+
+      .font-btn {
+        width: 22px;
+        height: 22px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: #fff;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 14px;
+        font-weight: bold;
+        color: #333;
+      }
+
+      .font-btn:hover {
+        background: #f3f4f6;
+      }
 
       /* Checkbox styling in table */
       .check-cell {
@@ -263,7 +291,8 @@
         border-bottom: 1px solid #eee;
       }
 
-      .catatan-content {        
+      .catatan-content {
+        min-height: 80px;
         padding: 10px;
         display: flex;
         flex-wrap: wrap;
@@ -399,6 +428,26 @@
         background-color: #8b5cf6; /* Purple for Save */
       }
 
+      .toggle-container {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 14px;
+        font-weight: 500;
+        color: #4b5563;
+        background: #f3f4f6;
+        padding: 5px 12px;
+        border-radius: 6px;
+        white-space: nowrap;
+        cursor: pointer;
+      }
+
+      .toggle-container input {
+        width: 16px;
+        height: 16px;
+        cursor: pointer;
+      }
+
       #data-display-table th {
         background-color: #374151;
         color: white;
@@ -406,6 +455,51 @@
 
       #data-display-table td {
         font-size: 13px;
+      }
+
+      /* Toast Notification */
+      .toast-container {
+        position: fixed;
+        top: 20px;
+        left: 50%;
+        transform: translateX(-50%);
+        z-index: 9999;
+        pointer-events: none;
+      }
+
+      .alert {
+        padding: 12px 24px;
+        border-radius: 6px;
+        margin-bottom: 10px;
+        font-weight: 600;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        min-width: 300px;
+        text-align: center;
+        animation: fadeInDown 0.4s ease-out;
+        transition: opacity 0.4s ease-out, transform 0.4s ease-out;
+      }
+
+      .alert-success {
+        background-color: #d1e7dd;
+        color: #0f5132;
+        border: 1px solid #badbcc;
+      }
+
+      .alert-danger {
+        background-color: #f8d7da;
+        color: #842029;
+        border: 1px solid #f5c2c7;
+      }
+
+      @keyframes fadeInDown {
+        from {
+          opacity: 0;
+          transform: translateY(-20px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
       }
 
       /* Filter Styles */
@@ -474,9 +568,14 @@
           margin: 0 !important;
           padding: 10px !important;
         }
-        .action-buttons, .right-sidebar { 
+        .action-buttons, .no-print { 
           display: none !important; 
         }
+        
+        body.hide-images-print .right-sidebar {
+          display: none !important;
+        }
+
         .main-layout {
           display: block !important;
         }
@@ -501,14 +600,21 @@
       <a href="#" class="nav-link" id="nav-table" onclick="switchPage('table')">Tabel Cetakan</a>
     </nav>
 
+    <div id="toast-container" class="toast-container"></div>
+
     <div id="spk-page" class="page active">
       <div class="action-buttons">
         <button class="btn print-btn" onclick="window.print()">Cetak SPK</button>
+        <div class="toggle-container">
+          <input type="checkbox" id="toggle-print-images" checked onchange="togglePrintImages()">
+          <label for="toggle-print-images">Gambar di Print</label>
+        </div>
         <button class="btn save-btn" onclick="saveToSpreadsheet()">Simpan ke Spreadsheet</button>
         <button class="btn clear-btn" onclick="clearPemesan()">Hapus Nama Pemesan</button>
         <button class="btn add-btn" onclick="addRow()">Tambah Baris</button>
         <button class="btn remove-btn" onclick="removeRow()">Hapus Baris</button>
         <button class="btn clear-all-btn" onclick="clearAllInputs()">Hapus Isian Kolom</button>
+      </div>
       
       <div class="service-options">
         <label class="service-item">
@@ -581,7 +687,13 @@
 
           <!-- Catatan -->
           <div class="catatan-box">
-            <div class="catatan-label">Catatan Tambahan</div>
+            <div class="catatan-label">
+              Catatan Tambahan
+              <div class="note-controls no-print">
+                <button class="font-btn" onclick="changeNoteFontSize(2)">+</button>
+                <button class="font-btn" onclick="changeNoteFontSize(-2)">-</button>
+              </div>
+            </div>
             <div id="catatan-list" class="catatan-content">
               <!-- Notes will appear here as badges -->
             </div>
@@ -679,10 +791,39 @@
     </div>
 
     <script>
-      const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyCt_xbrOpJKOUcb6ty0mpMVP-xT9_MlLlwVn5R1ijFu9J51iZXjej0ewTkMIMnFyOWBQ/exec';
+      const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzTM4HXdoPmiKjw7mk9pJazqLxTlsn9R0wF5s5lEy0KphX9wVLwqsk2r1qdEIso-m9xdQ/exec';
       let rowCount = 0;
       let allSpreadsheetData = []; // Global storage for filtering
+      let bahanData = []; // Data mapping bahan dari sheet
+      let ketData = [];   // Data mapping keterangan dari sheet
+      let noteFontSize = 14; 
       const longNotes = {}; // To store full text for truncated items
+
+      function togglePrintImages() {
+        const isChecked = document.getElementById('toggle-print-images').checked;
+        if(isChecked) {
+          document.body.classList.remove('hide-images-print');
+        } else {
+          document.body.classList.add('hide-images-print');
+        }
+      }
+
+      function showToast(message, type = 'success') {
+        const container = document.getElementById('toast-container');
+        const alert = document.createElement('div');
+        alert.className = `alert alert-${type}`;
+        alert.textContent = message;
+        container.appendChild(alert);
+
+        // Auto hide after 3 seconds
+        setTimeout(() => {
+          alert.style.opacity = '0';
+          alert.style.transform = 'translateY(-20px)';
+          setTimeout(() => {
+            alert.remove();
+          }, 400);
+        }, 3000);
+      }
 
       function updateDateTime() {
         const now = new Date();
@@ -707,6 +848,12 @@
         const isOffset = document.getElementById('check-offset').checked;
         const isOutdoor = document.getElementById('check-outdoor').checked;
         const isIndoor = document.getElementById('check-indoor').checked;
+        const isMerch = document.getElementById('check-merchandise').checked;
+
+        let currentTipe = 'offset';
+        if (isOutdoor) currentTipe = 'outdoor';
+        if (isIndoor) currentTipe = 'indoor';
+        if (isMerch) currentTipe = 'merchandise';
 
         let name = filename.toLowerCase();
         let result = {
@@ -734,61 +881,35 @@
           }
         }
 
-        // 2. Identifikasi Bahan berdasarkan Mode
-        if (isOffset) {
-          const offsetMap = {
-            'ap260': ['ap tebal', 'ap 260', 'artpaper 260 gr', 'ap260 gr', 'ap260'],
-            'ap150': ['ap 150 gr', 'ap tipis', 'artpaper 150 gr', 'artpaper 150', 'ap150'],
-            'bontak': ['bontak'],
-            'vynil': ['vynil'],
-            'transparan': ['transparan']
-          };
-          for (const [standard, aliases] of Object.entries(offsetMap)) {
-            if (aliases.some(alias => name.includes(alias))) {
-              result.bahan = standard;
-              break;
-            }
-          }
-
-          // Keterangan khusus Offset
-          if (result.bahan === 'ap260' || result.bahan === 'ap150') {
-            const sisiMap = { '1 sisi': ['1 ssi', '1 sisis', '1sisi', '1ssi'], '2 sisi': ['2 ssi', '2 sisii', '2sisi', '2ssi'] };
-            const lamMap = { 'laminasi doff': ['dof', 'dop', 'doft', 'dopt', 'laminasi doff'], 'laminasi glossy': ['glos', 'glossy', 'glosi', 'lam glos'] };
-            
-            let foundSisi = Object.keys(sisiMap).find(s => sisiMap[s].some(a => name.includes(a))) || '1 sisi';
-            let foundLam = Object.keys(lamMap).find(l => lamMap[l].some(a => name.includes(a))) || '';
-            result.keterangan = foundSisi + (foundLam ? ' ' + foundLam : '');
-          }
-        } 
-        else if (isOutdoor) {
-          const outdoorMap = {
-            'fr280': ['frontlite 280 gr', 'flexi', 'fr', '280gr', 'spanduk', 'banner'],
-            'backlite': ['beklit', 'backlit', 'bl', 'backlite', 'neonbox', 'film'],
-            'graptak out': ['graptak outdor', 'stiker oudoor', 'stiker']
-          };
-          for (const [standard, aliases] of Object.entries(outdoorMap)) {
-            if (aliases.some(alias => name.includes(alias))) {
-              result.bahan = standard;
-              break;
-            }
-          }
-        } 
-        else if (isIndoor) {
-          const indoorMap = {
-            'graptak indoor': ['graptak indoor', 'stiker indoor', 'stiker'],
-            'luster': ['luster', 'cluster', 'laster'],
-            'pvc': ['pvc', 'ppc'],
-            'albatros': ['albatos', 'albtros', 'albatros']
-          };
-          for (const [standard, aliases] of Object.entries(indoorMap)) {
-            if (aliases.some(alias => name.includes(alias))) {
-              result.bahan = standard;
+        // 2. Identifikasi Bahan (Dinamis dari Spreadsheet)
+        if (bahanData.length > 0) {
+          const matchedBahan = bahanData.filter(b => b.tipe && b.tipe.toLowerCase() === currentTipe);
+          for (const entry of matchedBahan) {
+            const alias = (entry.nama_lain || entry.nama_bahan || "").toLowerCase().trim();
+            if (alias && name.includes(alias)) {
+              result.bahan = entry.nama_bahan || entry.bahan;
               break;
             }
           }
         }
 
-        // 3. Logic for Long Text Truncation and Notes
+        // 3. Identifikasi Keterangan (Dinamis dari Spreadsheet)
+        if (ketData.length > 0) {
+          const matchedKet = ketData.filter(k => k.tipe && k.tipe.toLowerCase() === currentTipe);
+          let foundKets = [];
+          for (const entry of matchedKet) {
+            const alias = (entry.nama_lain || entry.nama_keterangan || "").toLowerCase().trim();
+            if (alias && name.includes(alias)) {
+              foundKets.push(entry.nama_keterangan || entry.keterangan);
+            }
+          }
+          if (foundKets.length > 0) {
+            // Gabungkan beberapa keterangan unik yang ditemukan
+            result.keterangan = [...new Set(foundKets)].join(' ');
+          }
+        }
+
+        // 4. Logic for Long Text Truncation and Notes
         const MAX_LEN = 20;
         let truncatedItem = result.item;
         let truncatedKet = result.keterangan;
@@ -843,8 +964,9 @@
           
           ketNotes.forEach(note => {
             const div = document.createElement('div');
-            div.style.fontSize = '14px';
-            div.style.lineHeight = '1.4';
+            div.style.fontSize = noteFontSize + 'px';
+            div.style.lineHeight = '1.2';
+            div.style.fontWeight = 'bold';
             div.innerHTML = `Ket No ${note.id}: ${note.text}`;
             ketContainer.appendChild(div);
           });
@@ -880,28 +1002,52 @@
         }
       }
 
-      function handleManualInput(rowId) {
-        const itemInput = document.getElementById(`input-item-${rowId}`);
-        const ketInput = document.getElementById(`input-keterangan-${rowId}`);
+      function changeNoteFontSize(delta) {
+        noteFontSize = Math.max(10, Math.min(40, noteFontSize + delta));
+        renderNotes();
+      }
+
+      function handleManualInput(rowId, type) {
+        const input = document.getElementById(`input-${type}-${rowId}`);
+        const value = input.value;
         const MAX_LEN = 20;
         
         if (!longNotes[rowId]) longNotes[rowId] = {};
 
-        // Check Item
-        if (itemInput.value.length > MAX_LEN && !itemInput.value.endsWith('...')) {
-          const fullText = itemInput.value;
-          itemInput.value = fullText.substring(0, MAX_LEN) + '...';
-          longNotes[rowId].item = fullText;
+        // Update the "source of truth" in longNotes
+        // We always keep the live value here if it's long and not explicitly truncated in the box
+        if (value.length > MAX_LEN && !value.endsWith('...')) {
+          longNotes[rowId][type === 'keterangan' ? 'ket' : type] = value;
+          renderNotes();
+        } else if (value.length <= MAX_LEN) {
+          delete longNotes[rowId][type === 'keterangan' ? 'ket' : type];
           renderNotes();
         }
+      }
 
-        // Check Keterangan
-        if (ketInput.value.length > MAX_LEN && !ketInput.value.endsWith('...')) {
-          const fullText = ketInput.value;
-          ketInput.value = fullText.substring(0, MAX_LEN) + '...';
-          longNotes[rowId].ket = fullText;
-          renderNotes();
+      function onFocusInput(rowId, type) {
+        const input = document.getElementById(`input-${type}-${rowId}`);
+        const key = type === 'keterangan' ? 'ket' : type;
+        if (longNotes[rowId] && longNotes[rowId][key]) {
+          // Restore full text for editing
+          input.value = longNotes[rowId][key];
         }
+      }
+
+      function onBlurInput(rowId, type) {
+        const input = document.getElementById(`input-${type}-${rowId}`);
+        const value = input.value;
+        const MAX_LEN = 20;
+        const key = type === 'keterangan' ? 'ket' : type;
+
+        if (value.length > MAX_LEN) {
+          if (!longNotes[rowId]) longNotes[rowId] = {};
+          longNotes[rowId][key] = value;
+          input.value = value.substring(0, MAX_LEN) + '...';
+        } else {
+          if (longNotes[rowId]) delete longNotes[rowId][key];
+        }
+        renderNotes();
       }
 
       function clearRow(id) {
@@ -940,13 +1086,13 @@
         tr.id = `row-${rowCount}`;
         tr.innerHTML = `
           <td class="center bold" style="cursor:pointer; background:#f9fafb;" title="Klik untuk hapus baris ini" onclick="clearRow(${rowCount})">${rowCount}</td>
-          <td><input type="text" id="input-item-${rowCount}" oninput="handleManualInput(${rowCount})"></td>
+          <td><input type="text" id="input-item-${rowCount}" oninput="handleManualInput(${rowCount}, 'item')" onfocus="onFocusInput(${rowCount}, 'item')" onblur="onBlurInput(${rowCount}, 'item')"></td>
           <td><input type="text" id="input-ukuran-${rowCount}"></td>
           <td><input type="text" id="input-bahan-${rowCount}"></td>
           <td><input type="text" class="center" id="input-qty-${rowCount}"></td>
           <td class="check-cell"><input type="checkbox" class="check-box-input"></td>
           <td class="check-cell"><input type="checkbox" class="check-box-input"></td>
-          <td><input type="text" id="input-keterangan-${rowCount}" oninput="handleManualInput(${rowCount})"></td>
+          <td><input type="text" id="input-keterangan-${rowCount}" oninput="handleManualInput(${rowCount}, 'keterangan')" onfocus="onFocusInput(${rowCount}, 'keterangan')" onblur="onBlurInput(${rowCount}, 'keterangan')"></td>
         `;
         tbody.appendChild(tr);
 
@@ -1032,8 +1178,37 @@
         }
       });
 
-      // Inisialisasi dengan 4 baris awal
-      for(let i=0; i<4; i++) addRow();
+      // Inisialisasi Aplikasi
+      async function initApp() {
+        for(let i=0; i<4; i++) addRow();
+        togglePrintImages(); // Set initial print class state
+        await Promise.all([
+          fetchMappingData('getBahan', (data) => bahanData = data),
+          fetchMappingData('getKeterangan', (data) => ketData = data)
+        ]);
+        console.log('Mapping data loaded:', { materials: bahanData.length, notes: ketData.length });
+      }
+
+      async function fetchMappingData(action, callback) {
+        try {
+          const response = await fetch(`${SCRIPT_URL}?action=${action}`);
+          if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+          
+          const text = await response.text();
+          try {
+            const data = JSON.parse(text);
+            callback(Array.isArray(data) ? data : []);
+          } catch (e) {
+            console.error(`Invalid JSON for ${action}:`, text.substring(0, 100));
+            callback([]);
+          }
+        } catch (error) {
+          console.error(`Error fetching ${action}:`, error);
+          callback([]);
+        }
+      }
+
+      initApp();
 
       // Fungsi Paste Global
       window.addEventListener('paste', (e) => {
@@ -1145,11 +1320,11 @@
             body: JSON.stringify(rows)
           });
 
-          alert('Data berhasil dikirim ke Spreadsheet!');
+          showToast('Data berhasil dikirim ke Spreadsheet!', 'success');
           // Opsional: clearAllInputs();
         } catch (error) {
           console.error('Error:', error);
-          alert('Gagal menyimpan data. Pastikan Apps Script sudah di-deploy sebagai Web App (Anyone).');
+          showToast('Gagal menyimpan data!', 'danger');
         } finally {
           btn.textContent = originalText;
           btn.disabled = false;
