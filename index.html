@@ -618,16 +618,16 @@
       
       <div class="service-options no-print">
         <label class="service-item">
-          <input type="radio" name="order-type" id="check-offset" checked> Offset
+          <input type="radio" name="order-type" id="check-offset" checked onchange="refreshAllFnsLs()"> Offset
         </label>
         <label class="service-item">
-          <input type="radio" name="order-type" id="check-outdoor"> Outdoor
+          <input type="radio" name="order-type" id="check-outdoor" onchange="refreshAllFnsLs()"> Outdoor
         </label>
         <label class="service-item">
-          <input type="radio" name="order-type" id="check-indoor"> Indoor
+          <input type="radio" name="order-type" id="check-indoor" onchange="refreshAllFnsLs()"> Indoor
         </label>
         <label class="service-item">
-          <input type="radio" name="order-type" id="check-merchandise"> Merchandise
+          <input type="radio" name="order-type" id="check-merchandise" onchange="refreshAllFnsLs()"> Merchandise
         </label>
       </div>
     </div>
@@ -937,6 +937,9 @@
         document.getElementById(`input-qty-${rowId}`).value = result.qty;
         document.getElementById(`input-keterangan-${rowId}`).value = truncatedKet;
 
+        // Auto check FNS/LS mapping
+        updateFnsLsStatus(rowId);
+
         return result.item;
       }
 
@@ -1015,13 +1018,63 @@
         if (!longNotes[rowId]) longNotes[rowId] = {};
 
         // Update the "source of truth" in longNotes
-        // We always keep the live value here if it's long and not explicitly truncated in the box
         if (value.length > MAX_LEN && !value.endsWith('...')) {
           longNotes[rowId][type === 'keterangan' ? 'ket' : type] = value;
           renderNotes();
         } else if (value.length <= MAX_LEN) {
           delete longNotes[rowId][type === 'keterangan' ? 'ket' : type];
           renderNotes();
+        }
+
+        // Auto check FNS/LS logic runs for both Item and Keterangan inputs
+        updateFnsLsStatus(rowId);
+      }
+
+      function updateFnsLsStatus(rowId) {
+        const outdoorChecked = document.getElementById('check-outdoor').checked;
+        const fnsCheckbox = document.getElementById(`input-fns-${rowId}`);
+        const lsCheckbox = document.getElementById(`input-ls-${rowId}`);
+
+        if (!outdoorChecked) {
+          // If not outdoor, we don't auto-check. You can decide to clear or leave them.
+          // For now, let's not force clear unless the user asks, but it won't auto-check.
+          return;
+        }
+
+        const ketInput = document.getElementById(`input-keterangan-${rowId}`);
+        const itemInput = document.getElementById(`input-item-${rowId}`);
+        if (!ketInput || !itemInput) return;
+
+        // Get full text from both Item and Keterangan
+        const fullKet = (longNotes[rowId] && longNotes[rowId].ket) ? longNotes[rowId].ket : ketInput.value;
+        const fullItem = (longNotes[rowId] && longNotes[rowId].item) ? longNotes[rowId].item : itemInput.value;
+        const combinedText = (fullItem + " " + fullKet).toLowerCase();
+
+        const fnsKeywords = ['fs', 'fns', 'finishing', 'mata ayam', 'ma', 'mta aym', 'mta ayam'];
+        const lsKeywords = ['lebih sisi', 'lbh sisi', 'lbh ss', 'ls'];
+
+        const checkMatch = (text, keywords) => {
+          return keywords.some(kw => {
+            if (kw.length <= 2) {
+              // Word boundary for short words, but also allow simple include if it's isolated by spaces
+              const regex = new RegExp(`\\b${kw}\\b`, 'i');
+              return regex.test(text);
+            }
+            return text.includes(kw.toLowerCase());
+          });
+        };
+
+        if (fnsCheckbox) {
+          fnsCheckbox.checked = checkMatch(combinedText, fnsKeywords);
+        }
+        if (lsCheckbox) {
+          lsCheckbox.checked = checkMatch(combinedText, lsKeywords);
+        }
+      }
+
+      function refreshAllFnsLs() {
+        for (let i = 1; i <= rowCount; i++) {
+          updateFnsLsStatus(i);
         }
       }
 
@@ -1057,6 +1110,11 @@
         document.getElementById(`input-qty-${id}`).value = '';
         document.getElementById(`input-keterangan-${id}`).value = '';
         
+        const fns = document.getElementById(`input-fns-${id}`);
+        const ls = document.getElementById(`input-ls-${id}`);
+        if (fns) fns.checked = false;
+        if (ls) ls.checked = false;
+
         // Reset Sidebar Box (Hapus Gambar)
         const box = document.getElementById(`sidebar-box-${id}`);
         if (box) {
@@ -1090,8 +1148,8 @@
           <td><input type="text" id="input-ukuran-${rowCount}"></td>
           <td><input type="text" id="input-bahan-${rowCount}"></td>
           <td><input type="text" class="center" id="input-qty-${rowCount}"></td>
-          <td class="check-cell"><input type="checkbox" class="check-box-input"></td>
-          <td class="check-cell"><input type="checkbox" class="check-box-input"></td>
+          <td class="check-cell"><input type="checkbox" id="input-fns-${rowCount}" class="check-box-input"></td>
+          <td class="check-cell"><input type="checkbox" id="input-ls-${rowCount}" class="check-box-input"></td>
           <td><input type="text" id="input-keterangan-${rowCount}" oninput="handleManualInput(${rowCount}, 'keterangan')" onfocus="onFocusInput(${rowCount}, 'keterangan')" onblur="onBlurInput(${rowCount}, 'keterangan')"></td>
         `;
         tbody.appendChild(tr);
